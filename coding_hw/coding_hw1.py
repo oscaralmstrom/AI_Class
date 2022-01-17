@@ -1,3 +1,5 @@
+import re
+from tracemalloc import start
 from typing import List, Tuple, Set, Dict, Optional, cast
 from environments.environment_abstract import Environment, State
 from environments.farm_grid_world import FarmState
@@ -80,8 +82,49 @@ def breadth_first_search(start_state: State, env: Environment, viz) -> Optional[
 
     :return: a list of integers representing the actions that should be taken to reach the goal or None if no solution
     """
-    pass
+    #Terminate if the start state is the goal
+    if env.is_terminal(start_state): 
+        return []
+    
+    #Init the open fifo list and closed set
+    open = list()
+    closed = set()
+    root = Node(start_state, 0, None, None, 0)
+    open.append(root)
+    closed.add(root.state)
 
+    while len(open) > 0:
+        #As its a fifo queue, always pop the first element
+        parent = open.pop(0)
+
+        #Get available actions this parent node can do
+        for action in env.get_actions(parent.state):
+
+            #Create new child node based on an action taken from parent node
+            [new_state, cost] = get_next_state_and_transition_cost(env, parent.state, action)
+            child = Node(new_state, parent.path_cost + cost, action, parent, parent.depth + 1)
+
+            #If the goal is found, return the solution
+            if env.is_terminal(child.state):
+                return get_solution(child, start_state)
+            
+            if child.state not in closed:
+                #Append defaults to adding to back of list, fifo still holds
+                closed.add(child.state)
+                open.append(child)
+    
+    return None
+
+#Returns a list of actions that resultes in a solution from node child to state start_state
+def get_solution(child: Node, start_state: State) ->List[int]:
+    result_actions = list()
+    #Igonre the root's parent action as it is initialized to None
+    while (child.state != start_state):
+        result_actions.append(child.parent_action)
+        #Continue following along the parent's previous action
+        child = child.parent
+
+    return result_actions
 
 def depth_limited_search(start_state: State, env: Environment, limit: int, viz) -> Optional[List[int]]:
     """ Depth-limited search
