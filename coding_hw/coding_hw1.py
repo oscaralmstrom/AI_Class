@@ -122,8 +122,9 @@ def get_solution(child: Node, start_state: State) ->List[int]:
     while (child.state != start_state):
         result_actions.append(child.parent_action)
         #Continue following along the parent's previous action
-        child = child.parent
-
+        child = child.parent    
+    #Reverse the list as we create it starting at the goal
+    result_actions.reverse()
     return result_actions
 
 def depth_limited_search(start_state: State, env: Environment, limit: int, viz) -> Optional[List[int]]:
