@@ -217,4 +217,42 @@ def best_first_search(start_state: State, env: Environment, weight_g: float, wei
 
     :return: a list of integers representing the actions that should be taken to reach the goal or None if no solution
     """
-    pass
+
+    #Terminate if the start state is the goal
+    if env.is_terminal(start_state): 
+        return []
+    
+    #Init the open fifo list and closed set
+    open = []
+    closed = dict()
+    root = Node(start_state, 0, None, None, 0)
+    heappush(open,(0, root))
+    closed[root.state] = 0
+
+    while len(open) > 0:
+        #As its a fifo queue, always pop the first element
+        (path_cost, parent) = heappop(open)
+
+        if env.is_terminal(parent.state):
+            return get_solution(parent, start_state)
+
+        #Get available actions this parent node can do
+        for action in env.get_actions(parent.state):
+
+            #Create new child node based on an action taken from parent node
+            [new_state, cost] = get_next_state_and_transition_cost(env, parent.state, action)
+            child = Node(new_state, path_cost + cost, action, parent, parent.depth + 1)
+
+            if (child.state not in closed or child.path_cost < closed[child.state]):
+                #Append defaults to adding to back of list, fifo still holds
+                closed[child.state] = child.path_cost
+                heappush(open, (priorityCostFunction(child, weight_g, weight_h), child))
+    
+    return None
+
+def priorityCostFunction(node: Node, weight_g: float, weight_h: float) -> float:
+    (nX, nY) = node.state.agent_idx
+    (gX, gY) = node.state.goal_idx
+    manhattan = abs(nX - gX) + abs(nY - gY)
+    return node.path_cost*(weight_g + weight_h*manhattan)
+
