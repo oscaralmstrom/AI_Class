@@ -234,8 +234,8 @@ def best_first_search(start_state: State, env: Environment, weight_g: float, wei
     closed[root.state] = 0
 
     while len(open) > 0:
-        #As its a fifo queue, always pop the first element
-        (path_cost, parent) = heappop(open)
+        #Pop priority Q
+        (_, parent) = heappop(open)
 
         if env.is_terminal(parent.state):
             return get_solution(parent, start_state)
@@ -245,7 +245,7 @@ def best_first_search(start_state: State, env: Environment, weight_g: float, wei
 
             #Create new child node based on an action taken from parent node
             [new_state, cost] = get_next_state_and_transition_cost(env, parent.state, action)
-            child = Node(new_state, path_cost + cost, action, parent, parent.depth + 1)
+            child = Node(new_state, parent.path_cost + cost, action, parent, parent.depth + 1)
 
             if (child.state not in closed or child.path_cost < closed[child.state]):
                 #Append defaults to adding to back of list, fifo still holds
@@ -258,5 +258,5 @@ def priorityCostFunction(node: Node, weight_g: float, weight_h: float) -> float:
     (nX, nY) = node.state.agent_idx
     (gX, gY) = node.state.goal_idx
     manhattan = abs(nX - gX) + abs(nY - gY)
-    return node.path_cost*(weight_g + weight_h*manhattan)
+    return node.path_cost*weight_g + weight_h*manhattan
 
