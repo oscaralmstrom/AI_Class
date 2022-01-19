@@ -142,7 +142,7 @@ def depth_limited_search(start_state: State, env: Environment, limit: int, viz) 
     if env.is_terminal(start_state): 
         return []
     
-    #Init the open fifo list and closed set
+    #Init the open LIFO list and closed set
     open = list()
     closed = set()
     root = Node(start_state, 0, None, None, 0)
@@ -150,13 +150,13 @@ def depth_limited_search(start_state: State, env: Environment, limit: int, viz) 
     closed.add(root.state)
 
     while len(open) > 0:
-        #As its a fifo queue, always pop the first element
+        #As its a LIFO queue, always pop the last (default) element
         parent = open.pop()
 
         if env.is_terminal(parent.state):
             return get_solution(parent, start_state)
 
-        #Go to the next node in the LIFO
+        #Go to the next node in the LIFO if depth reach or cycle detected
         if (parent.depth >= limit or isCycle(parent, start_state)):
             continue
 
@@ -172,16 +172,19 @@ def depth_limited_search(start_state: State, env: Environment, limit: int, viz) 
                 return get_solution(child, start_state)
             
             if child.state not in closed:
-                #Append defaults to adding to back of list, fifo still holds
+                #Append defaults by adding to the back of the list, LIFO still holds
                 closed.add(child.state)
                 open.append(child)
     
     return None
 
 def isCycle(node: Node, start_state: State) -> bool:
+    #Store all visited states to get to this node
     visited_states = set()
+    #Will loop until a same previous state is detected (a cycle)
     while (node.state not in visited_states):
         visited_states.add(node.state)
+        #If we have reached the start_state before any repeated state, then no cycle is present
         if (node.state == start_state):
              return False
         node = node.parent
@@ -199,6 +202,7 @@ def iterative_deepening_search(start_state: State, env: Environment, viz) -> Lis
 
     solution = None
     limit = 0
+    
     while (solution == None):
         solution = depth_limited_search(start_state, env, limit, viz)
         limit += 1
